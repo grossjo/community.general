@@ -31,6 +31,18 @@ options:
         required: False
         type: int
         default: 3000
+    user:
+        description:
+            - Which user to connect to Aerospike with
+        required: False
+        type: str
+        default: ""
+    password:
+        description:
+            - Which password to connect to Aerospike with
+        required: False
+        type: str
+        default: ""
     connect_timeout:
         description:
             - How long to try to connect before giving up (milliseconds)
@@ -183,6 +195,8 @@ def run_module():
     module_args = dict(
         host=dict(type='str', required=False, default='localhost'),
         port=dict(type='int', required=False, default=3000),
+        user=dict(type='str', required=False, default=''),
+        password=dict(type='str', required=False, default=''),
         connect_timeout=dict(type='int', required=False, default=1000),
         consecutive_good_checks=dict(type='int', required=False, default=3),
         sleep_between_checks=dict(type='int', required=False, default=60),
@@ -231,7 +245,7 @@ class Migrations:
 
     def __init__(self, module):
         self.module = module
-        self._client = self._create_client().connect()
+        self._client = self._create_client().connect(self.module.params['user'], self.module.params['password'])
         self._nodes = {}
         self._update_nodes_list()
         self._cluster_statistics = {}
@@ -256,6 +270,7 @@ class Migrations:
                 'timeout': self.module.params['connect_timeout']
             }
         }
+         
         return aerospike.client(config)
 
     def _info_cmd_helper(self, cmd, node=None, delimiter=';'):
